@@ -12,6 +12,19 @@ PER_TICKER = 5
 today = date.today()
 params = {"from": str(today - timedelta(days=2)), "to": str(today), "token": KEY}
 
+quotes = {}
+for t in TICKERS:
+    try:
+        url = "https://finnhub.io/api/v1/quote?" + urllib.parse.urlencode({"symbol": t, "token": KEY})
+        with urllib.request.urlopen(url, timeout=20) as r:
+            q = json.load(r)
+        if q.get("c"):
+            quotes[t] = {"c": q["c"], "d": q.get("d"), "dp": q.get("dp")}
+    except Exception as e:
+        print(f"{t}: quote failed ({e})")
+    time.sleep(1.1)
+print(f"Got {len(quotes)} quotes")
+
 seen, items = set(), []
 for t in TICKERS:
     url = "https://finnhub.io/api/v1/company-news?" + urllib.parse.urlencode({**params, "symbol": t})
@@ -31,5 +44,5 @@ for t in TICKERS:
 
 items.sort(key=lambda x: x["time"], reverse=True)
 with open("news.json", "w") as f:
-    json.dump({"updated": datetime.now(timezone.utc).isoformat(), "items": items}, f)
+    json.dump({"updated": datetime.now(timezone.utc).isoformat(), "quotes": quotes, "items": items}, f)
 print(f"Wrote {len(items)} items")
