@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S&P 100 News</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#6b7280;--card:#f5f6f8;--acc:#0b6bcb}
+@media(prefers-color-scheme:dark){:root{--bg:#121417;--fg:#e8e8e8;--mut:#9aa3af;--card:#1c2026;--acc:#5aa9ff}}
+body{margin:0;font:16px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+main{max-width:760px;margin:0 auto;padding:20px}
+h1{margin:0 0 4px}#upd{color:var(--mut);font-size:14px;margin-bottom:14px}
+input{width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;border-radius:8px;border:1px solid var(--mut);background:var(--card);color:var(--fg)}
+.item{background:var(--card);border-radius:10px;padding:12px 14px;margin-top:10px}
+.tk{display:inline-block;background:var(--acc);color:#fff;border-radius:6px;padding:0 7px;font-size:13px;font-weight:600;cursor:pointer;margin-right:6px}
+.item a{color:var(--fg);font-weight:600;text-decoration:none}.item a:hover{color:var(--acc)}
+.meta{color:var(--mut);font-size:13px;margin-top:4px}.sum{font-size:14px;margin-top:6px;color:var(--mut)}
+</style></head><body><main>
+<h1>S&P 100 News</h1><div id="upd">Loading…</div>
+<input id="q" placeholder="Filter by ticker or keyword (e.g. NVDA, earnings)">
+<div id="list"></div></main>
+<script>
+let data=[];const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safe=u=>/^https?:\/\//.test(u)?u:"#";
+function render(){
+  const q=$("q").value.trim().toLowerCase();
+  const rows=data.filter(i=>!q||i.ticker.toLowerCase()===q||(i.ticker+" "+i.headline+" "+i.summary).toLowerCase().includes(q)).slice(0,150);
+  $("list").innerHTML=rows.map(i=>`<div class="item"><span class="tk" data-t="${esc(i.ticker)}">${esc(i.ticker)}</span>
+  <a href="${esc(safe(i.url))}" target="_blank" rel="noopener noreferrer">${esc(i.headline)}</a>
+  <div class="meta">${esc(i.source)} · ${new Date(i.time*1000).toLocaleString()}</div>
+  ${i.summary?`<div class="sum">${esc(i.summary.slice(0,220))}${i.summary.length>220?"…":""}</div>`:""}</div>`).join("")||"<p>No matching news.</p>";
+}
+async function load(){
+  try{
+    const r=await fetch("news.json?"+Date.now());const j=await r.json();
+    data=j.items;$("upd").textContent="Last updated "+new Date(j.updated).toLocaleString();render();
+  }catch(e){$("upd").textContent="No news yet — run the update workflow once.";}
+}
+$("q").addEventListener("input",render);
+$("list").addEventListener("click",e=>{if(e.target.dataset.t){$("q").value=e.target.dataset.t;render();}});
+load();setInterval(load,5*60*1000); // re-check for fresh data every 5 min
+</script></body></html>
