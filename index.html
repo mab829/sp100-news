@@ -5,37 +5,109 @@
 <style>
 :root{--bg:#fff;--fg:#1a1a1a;--mut:#6b7280;--card:#f5f6f8;--acc:#0b6bcb}
 @media(prefers-color-scheme:dark){:root{--bg:#121417;--fg:#e8e8e8;--mut:#9aa3af;--card:#1c2026;--acc:#5aa9ff}}
+*{box-sizing:border-box}
 body{margin:0;font:16px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
-main{max-width:760px;margin:0 auto;padding:20px}
+main{max-width:760px;margin:0 auto;padding:20px 20px 90px}
 h1{margin:0 0 4px}#upd{color:var(--mut);font-size:14px;margin-bottom:14px}
-input{width:100%;box-sizing:border-box;padding:10px 12px;font-size:16px;border-radius:8px;border:1px solid var(--mut);background:var(--card);color:var(--fg)}
-.item{background:var(--card);border-radius:10px;padding:12px 14px;margin-top:10px}
-.tk{display:inline-block;background:var(--acc);color:#fff;border-radius:6px;padding:0 7px;font-size:13px;font-weight:600;cursor:pointer;margin-right:6px}
-.item a{color:var(--fg);font-weight:600;text-decoration:none}.item a:hover{color:var(--acc)}
+input,textarea{width:100%;padding:10px 12px;font:inherit;border-radius:8px;border:1px solid var(--mut);background:var(--card);color:var(--fg)}
+.item{background:var(--card);border-radius:10px;padding:12px 14px;margin-top:10px;cursor:pointer}
+.item:hover{outline:1px solid var(--acc)}
+.tk{display:inline-block;background:var(--acc);color:#fff;border-radius:6px;padding:0 7px;font-size:13px;font-weight:600;margin-right:6px}
+.item .tk{cursor:pointer}.hd{font-weight:600}
 .meta{color:var(--mut);font-size:13px;margin-top:4px}.sum{font-size:14px;margin-top:6px;color:var(--mut)}
+.btn{display:inline-block;background:var(--acc);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+.btn.alt{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.ov.on{display:flex}
+.box{background:var(--bg);border-radius:12px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:20px;position:relative}
+.x{position:absolute;top:10px;right:14px;background:none;border:0;color:var(--mut);font-size:22px;cursor:pointer}
+#fab{position:fixed;right:18px;bottom:18px;z-index:5;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+#chat{position:fixed;right:18px;bottom:18px;width:min(400px,calc(100vw - 36px));height:min(560px,75vh);background:var(--bg);border:1px solid var(--mut);border-radius:12px;display:none;flex-direction:column;z-index:11;overflow:hidden}
+#chat.on{display:flex}
+#chat header{padding:10px 14px;font-weight:700;display:flex;justify-content:space-between;border-bottom:1px solid var(--mut)}
+#msgs{flex:1;overflow:auto;padding:12px}
+.m{padding:8px 12px;border-radius:10px;margin-bottom:8px;white-space:pre-wrap;font-size:15px;max-width:92%}
+.m.u{background:var(--acc);color:#fff;margin-left:auto}.m.a{background:var(--card)}
+#chat form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--mut)}
+#chat textarea{resize:none;height:42px}
+.note{font-size:12px;color:var(--mut);padding:0 12px 8px}
 </style></head><body><main>
 <h1>S&P 100 News</h1><div id="upd">Loading…</div>
 <input id="q" placeholder="Filter by ticker or keyword (e.g. NVDA, earnings)">
 <div id="list"></div></main>
+
+<div class="ov" id="ov"><div class="box"><button class="x" id="cx">×</button><div id="detail"></div></div></div>
+
+<button class="btn" id="fab">Ask AI</button>
+<div id="chat">
+  <header><span>Ask about the news</span><button class="x" style="position:static" id="cc">×</button></header>
+  <div id="msgs"></div>
+  <div class="note">AI can make mistakes. Not financial advice.</div>
+  <form id="cf"><textarea id="ci" placeholder="e.g. What's driving NVDA today?"></textarea><button class="btn">Send</button></form>
+</div>
+
 <script>
-let data=[];const $=id=>document.getElementById(id);
+// After you deploy the Cloudflare Worker (see README), paste its URL here:
+const CHAT_URL = "";
+
+const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const safe=u=>/^https?:\/\//.test(u)?u:"#";
+let data=[],view=[],sel=null,chat=[];
+
 function render(){
   const q=$("q").value.trim().toLowerCase();
-  const rows=data.filter(i=>!q||i.ticker.toLowerCase()===q||(i.ticker+" "+i.headline+" "+i.summary).toLowerCase().includes(q)).slice(0,150);
-  $("list").innerHTML=rows.map(i=>`<div class="item"><span class="tk" data-t="${esc(i.ticker)}">${esc(i.ticker)}</span>
-  <a href="${esc(safe(i.url))}" target="_blank" rel="noopener noreferrer">${esc(i.headline)}</a>
+  view=data.filter(i=>!q||i.ticker.toLowerCase()===q||(i.ticker+" "+i.headline+" "+i.summary).toLowerCase().includes(q)).slice(0,150);
+  $("list").innerHTML=view.map((i,n)=>`<div class="item" data-i="${n}"><span class="tk" data-t="${esc(i.ticker)}">${esc(i.ticker)}</span>
+  <span class="hd">${esc(i.headline)}</span>
   <div class="meta">${esc(i.source)} · ${new Date(i.time*1000).toLocaleString()}</div>
-  ${i.summary?`<div class="sum">${esc(i.summary.slice(0,220))}${i.summary.length>220?"…":""}</div>`:""}</div>`).join("")||"<p>No matching news.</p>";
+  ${i.summary?`<div class="sum">${esc(i.summary.slice(0,160))}${i.summary.length>160?"…":""}</div>`:""}</div>`).join("")||"<p>No matching news.</p>";
+}
+function openDetail(i){
+  sel=i;
+  $("detail").innerHTML=`<span class="tk">${esc(i.ticker)}</span><h2 style="margin:8px 0">${esc(i.headline)}</h2>
+  <div class="meta">${esc(i.source)} · ${new Date(i.time*1000).toLocaleString()}</div>
+  <p>${i.summary?esc(i.summary):"The source didn't provide a summary for this story."}</p>
+  <a class="btn alt" href="${esc(safe(i.url))}" target="_blank" rel="noopener noreferrer">Read full article ↗</a>
+  <button class="btn" id="ask">Explain with AI</button>`;
+  $("ov").classList.add("on");
+  $("ask").onclick=()=>{closeDetail();openChat();send(`Explain this story in more depth and why it might matter for ${i.ticker}: "${i.headline}"`);};
+}
+function closeDetail(){$("ov").classList.remove("on");}
+function openChat(){$("chat").classList.add("on");$("fab").style.display="none";
+  if(!chat.length)addMsg("a","Hi! Ask me about any story or stock on this page.");}
+function addMsg(r,t){const d=document.createElement("div");d.className="m "+(r==="u"?"u":"a");d.textContent=t;$("msgs").appendChild(d);$("msgs").scrollTop=1e9;return d;}
+function fmt(i){return `[${i.ticker}] ${i.headline} (${i.source}, ${new Date(i.time*1000).toLocaleString()}) ${i.summary.slice(0,200)}`;}
+function context(){
+  let out="";
+  if(sel)out+="SELECTED ARTICLE:\n"+fmt(sel)+"\nFull summary: "+sel.summary+"\n\n";
+  const same=sel?data.filter(i=>i.ticker===sel.ticker&&i!==sel).slice(0,12):(view.length&&view.length<data.length?view.slice(0,25):data.slice(0,40));
+  return out+"RECENT HEADLINES:\n"+same.map(fmt).join("\n");
+}
+async function send(text){
+  text=text.trim();if(!text)return;
+  addMsg("u",text);chat.push({role:"user",content:text});
+  if(!CHAT_URL){addMsg("a","The AI isn't connected yet. Deploy the Cloudflare Worker from the README and paste its URL into CHAT_URL in index.html.");return;}
+  const wait=addMsg("a","Thinking…");
+  try{
+    const r=await fetch(CHAT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:chat,context:context()})});
+    const j=await r.json();wait.textContent=j.reply||"Sorry, something went wrong.";chat.push({role:"assistant",content:wait.textContent});
+  }catch(e){wait.textContent="Couldn't reach the AI. Try again in a moment.";chat.pop();}
 }
 async function load(){
-  try{
-    const r=await fetch("news.json?"+Date.now());const j=await r.json();
+  try{const j=await (await fetch("news.json?"+Date.now())).json();
     data=j.items;$("upd").textContent="Last updated "+new Date(j.updated).toLocaleString();render();
   }catch(e){$("upd").textContent="No news yet — run the update workflow once.";}
 }
 $("q").addEventListener("input",render);
-$("list").addEventListener("click",e=>{if(e.target.dataset.t){$("q").value=e.target.dataset.t;render();}});
-load();setInterval(load,5*60*1000); // re-check for fresh data every 5 min
+$("list").addEventListener("click",e=>{
+  if(e.target.dataset.t){$("q").value=e.target.dataset.t;render();return;}
+  const c=e.target.closest(".item");if(c)openDetail(view[+c.dataset.i]);});
+$("cx").onclick=closeDetail;$("ov").onclick=e=>{if(e.target.id==="ov")closeDetail();};
+$("fab").onclick=()=>{sel=null;openChat();};
+$("cc").onclick=()=>{$("chat").classList.remove("on");$("fab").style.display="";};
+$("cf").onsubmit=e=>{e.preventDefault();const t=$("ci").value;$("ci").value="";send(t);};
+$("ci").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("cf").requestSubmit();}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDetail();});
+load();setInterval(load,5*60*1000);
 </script></body></html>
