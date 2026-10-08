@@ -13,7 +13,7 @@ input,textarea{width:100%;padding:10px 12px;font:inherit;border-radius:8px;borde
 .item{background:var(--card);border-radius:10px;padding:12px 14px;margin-top:10px;cursor:pointer}
 .item:hover{outline:1px solid var(--acc)}
 .tk{display:inline-block;background:var(--acc);color:#fff;border-radius:6px;padding:0 7px;font-size:13px;font-weight:600;margin-right:6px}
-.item .tk{cursor:pointer}.hd{font-weight:600}.px{font-size:13px;font-weight:600;margin-right:8px;white-space:nowrap}.up{color:#16a34a}.dn{color:#e5484d}
+.item .tk{cursor:pointer}.hd{font-weight:600}.px{font-size:13px;font-weight:600;margin-right:8px;white-space:nowrap}.up{color:#16a34a}.dn{color:#e5484d}.row{display:flex;gap:6px;align-items:center;overflow-x:auto;margin-bottom:6px;font-size:13px;white-space:nowrap}.chip{background:var(--card);border-radius:6px;padding:2px 8px;font-weight:600;cursor:pointer}.bar{display:flex;gap:8px;margin-top:6px}.bar select{font:inherit;padding:0 10px;border-radius:8px;border:1px solid var(--mut);background:var(--card);color:var(--fg)}
 .meta{color:var(--mut);font-size:13px;margin-top:4px}.sum{font-size:14px;margin-top:6px;color:var(--mut)}
 .btn{display:inline-block;background:var(--acc);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
 .btn.alt{background:transparent;color:var(--acc);border:1px solid var(--acc)}
@@ -33,7 +33,8 @@ input,textarea{width:100%;padding:10px 12px;font:inherit;border-radius:8px;borde
 .note{font-size:12px;color:var(--mut);padding:0 12px 8px}
 </style></head><body><main>
 <h1>S&P 100 News</h1><div id="upd">Loading…</div>
-<input id="q" placeholder="Filter by ticker or keyword (e.g. NVDA, earnings)">
+<div id="strip"></div>
+<div class="bar"><input id="q" placeholder="Filter by ticker or keyword (e.g. NVDA, earnings)"><select id="sort"><option value="new">Newest first</option><option value="move">Biggest movers</option></select></div>
 <div id="list"></div></main>
 
 <div class="ov" id="ov"><div class="box"><button class="x" id="cx">×</button><div id="detail"></div></div></div>
@@ -60,9 +61,17 @@ function px(t){const q=quotes[t];if(!q||typeof q.c!=="number")return "";
   return `<span class="px ${ok?(up?"up":"dn"):""}">$${q.c.toFixed(2)}${ok?` ${up?"▲":"▼"} ${Math.abs(q.dp).toFixed(2)}%`:""}</span>`;}
 function pq(t){const q=quotes[t];if(!q||typeof q.c!=="number")return "";
   return ` $${q.c.toFixed(2)}`+(typeof q.dp==="number"?` ${q.dp>=0?"+":""}${q.dp.toFixed(2)}% today`:"");}
+function strip(){
+  const a=Object.entries(quotes).filter(([t,q])=>typeof q.dp==="number").sort((x,y)=>y[1].dp-x[1].dp);
+  const g=a.filter(([t,q])=>q.dp>0).slice(0,5),l=a.filter(([t,q])=>q.dp<0).slice(-5).reverse();
+  const chip=([t,q])=>`<span class="chip ${q.dp>=0?"up":"dn"}" data-t="${esc(t)}">${esc(t)} ${q.dp>=0?"+":""}${q.dp.toFixed(2)}%</span>`;
+  $("strip").innerHTML=a.length?`<div class="row"><b>Top gainers</b>${g.map(chip).join("")}</div><div class="row"><b>Top losers</b>${l.map(chip).join("")}</div>`:"";
+}
 function render(){
   const q=$("q").value.trim().toLowerCase();
-  view=data.filter(i=>!q||i.ticker.toLowerCase()===q||(i.ticker+" "+i.headline+" "+i.summary).toLowerCase().includes(q)).slice(0,150);
+  view=data.filter(i=>!q||i.ticker.toLowerCase()===q||(i.ticker+" "+i.headline+" "+i.summary).toLowerCase().includes(q));
+  if($("sort").value==="move"){const m=i=>Math.abs((quotes[i.ticker]||{}).dp||0);view.sort((a,b)=>m(b)-m(a)||b.time-a.time);}
+  view=view.slice(0,150);
   $("list").innerHTML=view.map((i,n)=>`<div class="item" data-i="${n}"><span class="tk" data-t="${esc(i.ticker)}">${esc(i.ticker)}</span>${px(i.ticker)}
   <span class="hd">${esc(i.headline)}</span>
   <div class="meta">${esc(i.source)} · ${new Date(i.time*1000).toLocaleString()}</div>
@@ -101,10 +110,11 @@ async function send(text){
 }
 async function load(){
   try{const j=await (await fetch("news.json?"+Date.now())).json();
-    data=j.items;quotes=j.quotes||{};$("upd").textContent="Last updated "+new Date(j.updated).toLocaleString();render();
+    data=j.items;quotes=j.quotes||{};$("upd").textContent="Last updated "+new Date(j.updated).toLocaleString();render();strip();
   }catch(e){$("upd").textContent="No news yet — run the update workflow once.";}
 }
-$("q").addEventListener("input",render);
+$("q").addEventListener("input",render);$("sort").addEventListener("change",render);
+$("strip").addEventListener("click",e=>{const c=e.target.closest(".chip");if(c){$("q").value=c.dataset.t;render();}});
 $("list").addEventListener("click",e=>{
   if(e.target.dataset.t){$("q").value=e.target.dataset.t;render();return;}
   const c=e.target.closest(".item");if(c)openDetail(view[+c.dataset.i]);});
