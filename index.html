@@ -2,94 +2,178 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>S&P 100 News</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#fff;--fg:#1a1a1a;--mut:#6b7280;--card:#f5f6f8;--acc:#0b6bcb}
-@media(prefers-color-scheme:dark){:root{--bg:#121417;--fg:#e8e8e8;--mut:#9aa3af;--card:#1c2026;--acc:#5aa9ff}}
+:root{color-scheme:light dark;--paper:#edf1f4;--sheet:#fff;--ink:#0e2133;--mut:#5b6b7a;--rule:#cbd5dd;--hl:#dde6ed;--up:#00785a;--dn:#c8381f;--band:#0e2133;--bandfg:#eaf1f6;--bandup:#43e0a5;--banddn:#ff7a66;
+--cd:'Barlow Condensed','Arial Narrow',Arial,sans-serif;--sf:'Newsreader',Georgia,'Times New Roman',serif}
+@media(prefers-color-scheme:dark){:root{--paper:#0a1722;--sheet:#102333;--ink:#e7eef3;--mut:#8fa2b2;--rule:#213547;--hl:#122a3d;--up:#3bd99b;--dn:#ff7a66;--band:#13293c}}
 *{box-sizing:border-box}
-body{margin:0;font:16px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
-main{max-width:760px;margin:0 auto;padding:20px 20px 90px}
-h1{margin:0 0 4px}#upd{color:var(--mut);font-size:14px;margin-bottom:14px}
-input,textarea{width:100%;padding:10px 12px;font:inherit;border-radius:8px;border:1px solid var(--mut);background:var(--card);color:var(--fg)}
-.item{background:var(--card);border-radius:10px;padding:12px 14px;margin-top:10px;cursor:pointer}
-.item:hover{outline:1px solid var(--acc)}
-.tk{display:inline-block;background:var(--acc);color:#fff;border-radius:6px;padding:0 7px;font-size:13px;font-weight:600;margin-right:6px}
-.item .tk{cursor:pointer}.hd{font-weight:600}.px{font-size:13px;font-weight:600;margin-right:8px;white-space:nowrap}.up{color:#16a34a}.dn{color:#e5484d}.row{display:flex;gap:6px;align-items:center;overflow-x:auto;margin-bottom:6px;font-size:13px;white-space:nowrap}.chip{background:var(--card);border-radius:6px;padding:2px 8px;font-weight:600;cursor:pointer}.bar{display:flex;gap:8px;margin-top:6px}.bar select{font:inherit;padding:0 10px;border-radius:8px;border:1px solid var(--mut);background:var(--card);color:var(--fg)}
-.meta{color:var(--mut);font-size:13px;margin-top:4px}.sum{font-size:14px;margin-top:6px;color:var(--mut)}
-.btn{display:inline-block;background:var(--acc);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
-.btn.alt{background:transparent;color:var(--acc);border:1px solid var(--acc)}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 var(--sf)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.up{color:var(--up)}.dn{color:var(--dn)}
+/* tape */
+.tape{background:var(--band);color:var(--bandfg);overflow:hidden;white-space:nowrap;font-family:var(--cd);font-variant-numeric:tabular-nums}
+.tt{display:inline-flex;animation:run 420s linear infinite}
+.tape:hover .tt{animation-play-state:paused}
+@keyframes run{to{transform:translateX(-50%)}}
+.ti{display:inline-flex;align-items:baseline;gap:9px;padding:14px 24px;border-right:1px solid rgba(255,255,255,.14);cursor:pointer}
+.ti b{font-size:20px;font-weight:600;opacity:.8}.ti span{font-size:30px;font-weight:700}.ti em{font-style:normal;font-size:19px;font-weight:600}
+.tape .up{color:var(--bandup)}.tape .dn{color:var(--banddn)}
+@media(prefers-reduced-motion:reduce){.tt{animation:none}.tape{overflow-x:auto}}
+/* page */
+.wrap{max-width:980px;margin:0 auto;padding:0 22px}
+h1{font:700 clamp(46px,9vw,92px)/.92 var(--cd);letter-spacing:-.01em;margin:38px 0 10px}
+.sub{margin:0 0 26px;color:var(--mut);font-size:18px;max-width:34em}
+.mv{display:flex;align-items:baseline;gap:14px;overflow-x:auto;white-space:nowrap;padding:3px 0}
+.lab{flex:none;width:84px;color:var(--mut);font-size:15px}
+.tk{flex:none;background:none;border:0;padding:0;cursor:pointer;font:600 19px var(--cd);font-variant-numeric:tabular-nums}
+.tk:hover{text-decoration:underline}
+.bar{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin:26px 0 0;padding-bottom:10px;border-bottom:2px solid var(--ink)}
+.bar input{flex:1;min-width:180px;font:inherit;background:var(--sheet);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:10px 14px}
+.bar input:focus{border-color:var(--ink);outline:none}
+.tabs{display:flex;gap:18px}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:4px 0;cursor:pointer;font:600 20px var(--cd);color:var(--mut)}
+.tabs button.on{color:var(--ink);border-color:var(--ink)}
+#count{color:var(--mut);font-size:15px;margin:10px 0 0}
+.lnk{background:none;border:0;padding:0;margin-left:8px;color:var(--ink);text-decoration:underline;cursor:pointer}
+/* feed */
+.row{display:grid;grid-template-columns:84px 1fr 104px;gap:0 20px;padding:18px 6px;border-bottom:1px solid var(--rule);cursor:pointer}
+.row:hover{background:var(--hl)}
+.when{font:600 20px/1.1 var(--cd);font-variant-numeric:tabular-nums}
+.when small{display:block;margin-top:6px;font:500 15px var(--sf);color:var(--mut)}
+.body h3{margin:0 0 4px;font:600 21px/1.25 var(--sf);letter-spacing:-.005em}
+.body p{margin:0;color:var(--mut);font-size:16px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.qt{text-align:right;font-family:var(--cd);font-variant-numeric:tabular-nums}
+.qt b{display:inline-block;font-size:22px;font-weight:700;cursor:pointer}
+.px i{display:block;font-style:normal;font-size:19px;font-weight:600;color:var(--ink)}
+.px em{display:block;font-style:normal;font-size:18px;font-weight:600}
+.empty{padding:40px 6px;color:var(--mut)}
+footer{padding:34px 0 120px;color:var(--mut);font-size:14px}
+@media(max-width:640px){.row{grid-template-columns:1fr auto;grid-template-areas:"when qt" "body body";gap:10px 12px}
+.when{grid-area:when}.body{grid-area:body}.qt{grid-area:qt}.when small{display:inline;margin-left:8px}.lab{width:70px}}
+/* detail */
+.ov{position:fixed;inset:0;background:rgba(6,14,22,.62);display:none;align-items:center;justify-content:center;padding:16px;z-index:30}
 .ov.on{display:flex}
-.box{background:var(--bg);border-radius:12px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:20px;position:relative}
-.x{position:absolute;top:10px;right:14px;background:none;border:0;color:var(--mut);font-size:22px;cursor:pointer}
-#fab{position:fixed;right:18px;bottom:18px;z-index:5;box-shadow:0 2px 10px rgba(0,0,0,.4)}
-#chat{position:fixed;right:18px;bottom:18px;width:min(400px,calc(100vw - 36px));height:min(560px,75vh);background:var(--bg);border:1px solid var(--mut);border-radius:12px;display:none;flex-direction:column;z-index:11;overflow:hidden}
-#chat.on{display:flex}
-#chat header{padding:10px 14px;font-weight:700;display:flex;justify-content:space-between;border-bottom:1px solid var(--mut)}
-#msgs{flex:1;overflow:auto;padding:12px}
-.m{padding:8px 12px;border-radius:10px;margin-bottom:8px;white-space:pre-wrap;font-size:15px;max-width:92%}
-.m.u{background:var(--acc);color:#fff;margin-left:auto}.m.a{background:var(--card)}
-#chat form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--mut)}
-#chat textarea{resize:none;height:42px}
-.note{font-size:12px;color:var(--mut);padding:0 12px 8px}
-</style></head><body><main>
-<h1>S&P 100 News</h1><div id="upd">Loading…</div>
-<div id="strip"></div>
-<div class="bar"><input id="q" placeholder="Filter by ticker or keyword (e.g. NVDA, earnings)"><select id="sort"><option value="new">Newest first</option><option value="move">Biggest movers</option></select></div>
-<div id="list"></div></main>
+.box{background:var(--sheet);border-radius:10px;max-width:660px;width:100%;max-height:88vh;overflow:auto;padding:30px 30px 26px;position:relative;animation:pop .18s}
+@keyframes pop{from{opacity:0;transform:translateY(10px)}}
+.x{position:absolute;top:10px;right:14px;background:none;border:0;font-size:28px;cursor:pointer;color:var(--mut)}
+.mt{font:600 22px var(--cd)}.mt span{font:400 15px var(--sf);color:var(--mut);margin-left:10px}
+.big{font:700 64px/1 var(--cd);font-variant-numeric:tabular-nums;margin:14px 0 2px}
+.chg{font:600 22px var(--cd)}
+.box h2{font:600 27px/1.2 var(--sf);margin:20px 0 10px}
+.box p{margin:0;font-size:18px;line-height:1.6}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.btn{display:inline-block;text-decoration:none;cursor:pointer;background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:6px;padding:9px 18px;font:600 19px var(--cd)}
+.btn.alt{background:transparent;color:var(--ink)}
+/* chat */
+#fab{position:fixed;right:20px;bottom:20px;z-index:20;border-radius:999px;padding:12px 24px;box-shadow:0 6px 20px rgba(0,0,0,.28)}
+#chat{position:fixed;right:20px;bottom:20px;width:min(410px,calc(100vw - 32px));height:min(600px,78vh);background:var(--sheet);border:1px solid var(--rule);border-radius:10px;display:none;flex-direction:column;z-index:31;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+#chat.on{display:flex;animation:pop .18s}
+#chat header{padding:12px 16px;background:var(--band);color:var(--bandfg);font:600 21px var(--cd);display:flex;justify-content:space-between;align-items:center}
+#chat header button{background:none;border:0;font-size:26px;cursor:pointer;color:inherit;line-height:1}
+#msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:9px}
+.m{padding:9px 13px;border-radius:8px;white-space:pre-wrap;font-size:16px;line-height:1.45;max-width:90%}
+.m.u{align-self:flex-end;background:var(--ink);color:var(--paper)}
+.m.a{align-self:flex-start;background:var(--hl)}
+.sug{display:flex;flex-wrap:wrap;gap:7px}
+.sug button{background:none;border:1px solid var(--rule);border-radius:999px;padding:5px 13px;cursor:pointer;font:600 17px var(--cd)}
+.sug button:hover{border-color:var(--ink)}
+.note{font-size:13px;color:var(--mut);padding:0 14px 6px}
+#chat form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--rule)}
+#chat textarea{flex:1;resize:none;height:44px;font:inherit;font-size:16px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);padding:9px 11px}
+#chat textarea:focus{outline:none;border-color:var(--ink)}
+</style></head><body>
+<div class="tape" id="tape"></div>
+<div class="wrap">
+  <h1>S&amp;P 100 News</h1>
+  <p class="sub">Headlines and prices for the S&amp;P 100, refreshed about every 30 minutes. <span id="upd"></span></p>
+  <div id="strip"></div>
+  <div class="bar">
+    <input id="q" placeholder="Search a ticker or topic, like NVDA or earnings">
+    <div class="tabs" id="tabs"><button data-s="new" class="on">Newest</button><button data-s="move">Biggest movers</button></div>
+  </div>
+  <div id="count"></div>
+  <div id="list"></div>
+  <footer>Prices are snapshots from the last refresh, not live quotes. Nothing here is financial advice.</footer>
+</div>
 
-<div class="ov" id="ov"><div class="box"><button class="x" id="cx">×</button><div id="detail"></div></div></div>
+<div class="ov" id="ov"><div class="box"><button class="x" id="cx" aria-label="Close">×</button><div id="detail"></div></div></div>
 
 <button class="btn" id="fab">Ask AI</button>
 <div id="chat">
-  <header><span>Ask about the news</span><button class="x" style="position:static" id="cc">×</button></header>
+  <header><span>Ask about the news</span><button id="cc" aria-label="Close chat">×</button></header>
   <div id="msgs"></div>
-  <div class="note">AI can make mistakes. Not financial advice.</div>
-  <form id="cf"><textarea id="ci" placeholder="e.g. What's driving NVDA today?"></textarea><button class="btn">Send</button></form>
+  <div class="note">AI can make mistakes. Check the source before you rely on it.</div>
+  <form id="cf"><textarea id="ci" placeholder="Ask about a story or a stock"></textarea><button class="btn">Send</button></form>
 </div>
 
+<script src="config.js"></script>
 <script>
-// After you deploy the Cloudflare Worker (see README), paste its URL here:
-const CHAT_URL = "https://sp100-chat.imaxb53.workers.dev";
-
+const CHAT_URL=/^https:\/\//.test(window.CHAT_URL||"")?window.CHAT_URL:"";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const safe=u=>/^https?:\/\//.test(u)?u:"#";
-let data=[],view=[],sel=null,chat=[],quotes={};
+let data=[],view=[],sel=null,chat=[],quotes={},mode="new";
 
-function px(t){const q=quotes[t];if(!q||typeof q.c!=="number")return "";
-  const ok=typeof q.dp==="number";const up=ok&&q.dp>=0;
-  return `<span class="px ${ok?(up?"up":"dn"):""}">$${q.c.toFixed(2)}${ok?` ${up?"▲":"▼"} ${Math.abs(q.dp).toFixed(2)}%`:""}</span>`;}
+const ago=t=>{const s=Date.now()/1000-t;return s<3600?Math.max(1,Math.round(s/60))+" min ago":s<86400?Math.round(s/3600)+" hr ago":Math.round(s/86400)+" days ago";};
+const clock=t=>{const d=new Date(t*1000),tm=d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+  return d.toDateString()===new Date().toDateString()?tm:d.toLocaleDateString([],{month:"short",day:"numeric"})+" "+tm;};
+const dir=t=>{const q=quotes[t];return q&&typeof q.dp==="number"?(q.dp>=0?"up":"dn"):"";};
+const arrow=k=>k==="up"?"▲":"▼";
+function px(t){const q=quotes[t];if(!q||typeof q.c!=="number")return "";const k=dir(t);
+  return `<span class="px ${k}"><i>$${q.c.toFixed(2)}</i>${k?`<em>${arrow(k)} ${Math.abs(q.dp).toFixed(2)}%</em>`:""}</span>`;}
 function pq(t){const q=quotes[t];if(!q||typeof q.c!=="number")return "";
   return ` $${q.c.toFixed(2)}`+(typeof q.dp==="number"?` ${q.dp>=0?"+":""}${q.dp.toFixed(2)}% today`:"");}
+
+function tape(){
+  const a=Object.keys(quotes).sort();
+  if(!a.length){$("tape").style.display="none";return;}
+  const it=a.map(t=>{const q=quotes[t],k=dir(t);
+    return `<span class="ti" data-t="${esc(t)}"><b>${esc(t)}</b><span>${q.c.toFixed(2)}</span>${k?`<em class="${k}">${arrow(k)} ${Math.abs(q.dp).toFixed(2)}%</em>`:""}</span>`;}).join("");
+  $("tape").style.display="";$("tape").innerHTML=`<div class="tt">${it}${it}</div>`;
+}
 function strip(){
   const a=Object.entries(quotes).filter(([t,q])=>typeof q.dp==="number").sort((x,y)=>y[1].dp-x[1].dp);
   const g=a.filter(([t,q])=>q.dp>0).slice(0,5),l=a.filter(([t,q])=>q.dp<0).slice(-5).reverse();
-  const chip=([t,q])=>`<span class="chip ${q.dp>=0?"up":"dn"}" data-t="${esc(t)}">${esc(t)} ${q.dp>=0?"+":""}${q.dp.toFixed(2)}%</span>`;
-  $("strip").innerHTML=a.length?`<div class="row"><b>Top gainers</b>${g.map(chip).join("")}</div><div class="row"><b>Top losers</b>${l.map(chip).join("")}</div>`:"";
+  const b=([t,q])=>`<button class="tk ${q.dp>=0?"up":"dn"}" data-t="${esc(t)}">${esc(t)} ${q.dp>=0?"+":"−"}${Math.abs(q.dp).toFixed(2)}%</button>`;
+  const row=(lab,arr)=>arr.length?`<div class="mv"><span class="lab">${lab}</span>${arr.map(b).join("")}</div>`:"";
+  $("strip").innerHTML=row("Gainers",g)+row("Decliners",l);
 }
 function render(){
-  const q=$("q").value.trim().toLowerCase();
+  const raw=$("q").value.trim(),q=raw.toLowerCase();
   view=data.filter(i=>!q||i.ticker.toLowerCase()===q||(i.ticker+" "+i.headline+" "+i.summary).toLowerCase().includes(q));
-  if($("sort").value==="move"){const m=i=>Math.abs((quotes[i.ticker]||{}).dp||0);view.sort((a,b)=>m(b)-m(a)||b.time-a.time);}
-  view=view.slice(0,150);
-  $("list").innerHTML=view.map((i,n)=>`<div class="item" data-i="${n}"><span class="tk" data-t="${esc(i.ticker)}">${esc(i.ticker)}</span>${px(i.ticker)}
-  <span class="hd">${esc(i.headline)}</span>
-  <div class="meta">${esc(i.source)} · ${new Date(i.time*1000).toLocaleString()}</div>
-  ${i.summary?`<div class="sum">${esc(i.summary.slice(0,160))}${i.summary.length>160?"…":""}</div>`:""}</div>`).join("")||"<p>No matching news.</p>";
+  if(mode==="move"){const m=i=>Math.abs((quotes[i.ticker]||{}).dp||0);view.sort((a,b)=>m(b)-m(a)||b.time-a.time);}
+  const total=view.length;view=view.slice(0,150);
+  $("count").innerHTML=data.length?`${total} ${total===1?"story":"stories"}`+(raw?` for “${esc(raw)}” <button class="lnk" id="clr">Show all</button>`:""):"";
+  $("list").innerHTML=view.map((i,n)=>`<article class="row" data-i="${n}" tabindex="0">
+    <div class="when">${esc(clock(i.time))}<small>${esc(i.source)}</small></div>
+    <div class="body"><h3>${esc(i.headline)}</h3>${i.summary?`<p>${esc(i.summary)}</p>`:""}</div>
+    <div class="qt"><b data-t="${esc(i.ticker)}">${esc(i.ticker)}</b>${px(i.ticker)}</div></article>`).join("")
+    ||`<div class="empty">${data.length?"No stories match that search. Try a ticker like AAPL, or clear the search.":"No stories yet. Run the Update news workflow once on GitHub."}</div>`;
 }
 function openDetail(i){
-  sel=i;
-  $("detail").innerHTML=`<span class="tk">${esc(i.ticker)}</span>${px(i.ticker)}<h2 style="margin:8px 0">${esc(i.headline)}</h2>
-  <div class="meta">${esc(i.source)} · ${new Date(i.time*1000).toLocaleString()}</div>
+  sel=i;const q=quotes[i.ticker],k=dir(i.ticker);
+  const chg=k?`<div class="chg ${k}">${arrow(k)} ${typeof q.d==="number"?Math.abs(q.d).toFixed(2)+" (":""}${Math.abs(q.dp).toFixed(2)}%${typeof q.d==="number"?")":""} today</div>`:"";
+  $("detail").innerHTML=`<div class="mt">${esc(i.ticker)}<span>${esc(i.source)}, ${esc(new Date(i.time*1000).toLocaleString())}</span></div>
+  ${q&&typeof q.c==="number"?`<div class="big">$${q.c.toFixed(2)}</div>${chg}`:""}
+  <h2>${esc(i.headline)}</h2>
   <p>${i.summary?esc(i.summary):"The source didn't provide a summary for this story."}</p>
-  <a class="btn alt" href="${esc(safe(i.url))}" target="_blank" rel="noopener noreferrer">Read full article ↗</a>
-  <button class="btn" id="ask">Explain with AI</button>`;
+  <div class="btns"><a class="btn alt" href="${esc(safe(i.url))}" target="_blank" rel="noopener noreferrer">Read the full article</a>
+  <button class="btn" id="ask">Explain with AI</button></div>`;
   $("ov").classList.add("on");
   $("ask").onclick=()=>{closeDetail();openChat();send(`Explain this story in more depth and why it might matter for ${i.ticker}: "${i.headline}"`);};
 }
 function closeDetail(){$("ov").classList.remove("on");}
-function openChat(){$("chat").classList.add("on");$("fab").style.display="none";
-  if(!chat.length)addMsg("a","Hi! Ask me about any story or stock on this page.");}
+function openChat(){
+  $("chat").classList.add("on");$("fab").style.display="none";
+  if(!$("msgs").children.length){addMsg("a","Ask about any story or stock on this page.");
+    const s=document.createElement("div");s.className="sug";
+    ["What moved the most today?","Summarize the biggest stories","Which stocks have the most news?"].forEach(t=>{
+      const b=document.createElement("button");b.textContent=t;b.onclick=()=>{s.remove();send(t);};s.appendChild(b);});
+    $("msgs").appendChild(s);}
+}
 function addMsg(r,t){const d=document.createElement("div");d.className="m "+(r==="u"?"u":"a");d.textContent=t;$("msgs").appendChild(d);$("msgs").scrollTop=1e9;return d;}
 function fmt(i){return `[${i.ticker}${pq(i.ticker)}] ${i.headline} (${i.source}, ${new Date(i.time*1000).toLocaleString()}) ${i.summary.slice(0,200)}`;}
 function context(){
@@ -101,23 +185,31 @@ function context(){
 async function send(text){
   text=text.trim();if(!text)return;
   addMsg("u",text);chat.push({role:"user",content:text});
-  if(!CHAT_URL){addMsg("a","The AI isn't connected yet. Deploy the Cloudflare Worker from the README and paste its URL into CHAT_URL in index.html.");return;}
+  if(!CHAT_URL){addMsg("a","The AI isn't connected yet. Open config.js in your GitHub repo and paste your Cloudflare Worker address into it.");return;}
   const wait=addMsg("a","Thinking…");
   try{
     const r=await fetch(CHAT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:chat,context:context()})});
     const j=await r.json();wait.textContent=j.reply||"Sorry, something went wrong.";chat.push({role:"assistant",content:wait.textContent});
-  }catch(e){wait.textContent="Couldn't reach the AI. Try again in a moment.";chat.pop();}
+  }catch(e){wait.textContent="Couldn't reach the AI. Check your connection and try again.";chat.pop();}
 }
 async function load(){
   try{const j=await (await fetch("news.json?"+Date.now())).json();
-    data=j.items;quotes=j.quotes||{};$("upd").textContent="Last updated "+new Date(j.updated).toLocaleString();render();strip();
-  }catch(e){$("upd").textContent="No news yet — run the update workflow once.";}
+    data=j.items;quotes=j.quotes||{};
+    $("upd").textContent="Updated "+ago(new Date(j.updated).getTime()/1000)+".";
+    tape();strip();render();
+  }catch(e){$("upd").textContent="No data yet.";render();}
 }
-$("q").addEventListener("input",render);$("sort").addEventListener("change",render);
-$("strip").addEventListener("click",e=>{const c=e.target.closest(".chip");if(c){$("q").value=c.dataset.t;render();}});
+const filterTo=t=>{$("q").value=t;render();window.scrollTo({top:0,behavior:"smooth"});};
+$("q").addEventListener("input",render);
+$("tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;mode=b.dataset.s;
+  [...$("tabs").children].forEach(x=>x.classList.toggle("on",x===b));render();});
 $("list").addEventListener("click",e=>{
-  if(e.target.dataset.t){$("q").value=e.target.dataset.t;render();return;}
-  const c=e.target.closest(".item");if(c)openDetail(view[+c.dataset.i]);});
+  const t=e.target.closest("[data-t]");if(t){filterTo(t.dataset.t);return;}
+  const r=e.target.closest(".row");if(r)openDetail(view[+r.dataset.i]);});
+$("list").addEventListener("keydown",e=>{if(e.key==="Enter"){const r=e.target.closest(".row");if(r)openDetail(view[+r.dataset.i]);}});
+$("strip").addEventListener("click",e=>{const t=e.target.closest("[data-t]");if(t)filterTo(t.dataset.t);});
+$("tape").addEventListener("click",e=>{const t=e.target.closest("[data-t]");if(t)filterTo(t.dataset.t);});
+$("count").addEventListener("click",e=>{if(e.target.id==="clr"){$("q").value="";render();}});
 $("cx").onclick=closeDetail;$("ov").onclick=e=>{if(e.target.id==="ov")closeDetail();};
 $("fab").onclick=()=>{sel=null;openChat();};
 $("cc").onclick=()=>{$("chat").classList.remove("on");$("fab").style.display="";};
